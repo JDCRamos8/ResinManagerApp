@@ -1,21 +1,23 @@
 # bot.py
 import os
-
 import discord
+
+from discord.ext import commands
 from dotenv import load_dotenv
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
-SERVER = os.getenv('DISCORD_SERVER')
 
-client = discord.Client()
+# Bot, subclass of Client discord API
+bot = commands.Bot(command_prefix='!')
 
-@client.event
+@bot.event
 async def on_ready():
-    server = discord.utils.get(client.guilds, name=SERVER)
-    print(
-        f'{client.user} is connected to the following server:\n'
-        f'{server.name}(id: {server.id})'
-    )
+    print(f'{bot.user.name} has connected to the discord server {bot.user.}!')
 
-client.run(TOKEN)
+# Max resin bot command
+@bot.command(name='max')
+async def _max(ctx):
+    await ctx.send('You will have max resin in - hours and - minutes.')
+
+bot.run(TOKEN)
