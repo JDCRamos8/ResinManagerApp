@@ -6,16 +6,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
-GUILD = os.getenv('DISCORD_GUILD')
+SERVER = os.getenv('DISCORD_SERVER')
 
 client = discord.Client()
 
 @client.event
 async def on_ready():
-    guild = discord.utils.get(client.guilds, name=GUILD)
+    server = discord.utils.get(client.guilds, name=SERVER)
     print(
         f'{client.user} is connected to the following server:\n'
-        f'{guild.name}(id: {guild.id})'
+        f'{server.name}(id: {server.id})'
     )
 
 client.run(TOKEN)
