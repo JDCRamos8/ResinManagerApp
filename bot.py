@@ -13,11 +13,11 @@ bot = commands.Bot(command_prefix='!')
 
 @bot.event
 async def on_ready():
-    print(f'{bot.user.name} has connected to the discord server {bot.user.}!')
+    print(f'{bot.user.name} has connected to Discord!')
 
 # Max resin bot command
-@bot.command(name='max')
+@bot.command(amount='max' or '40')
 async def _max(ctx):
-    await ctx.send('You will have max resin in - hours and - minutes.')
+    await ctx.send('You will have' + amount + 'resin in - hours and - minutes.')
 
 bot.run(TOKEN)
