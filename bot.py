@@ -19,7 +19,7 @@ async def on_ready():
 # Set: Sets resin amount and record time to calculate resin refill at specified amount
 @bot.command()
 async def set(ctx, arg):
-    global setTime, resin
+    global setTime, resinAmount
     setTime = datetime.now(tz=None)   # Get current time
     resinAmount = arg
 
