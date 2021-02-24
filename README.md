@@ -163,8 +163,8 @@ Project Link: [https://github.com/JDCRamos8/ResinManagerApp](https://github.com/
 <!-- ACKNOWLEDGEMENTS -->
 ## Acknowledgements
 
-* [Othneil Drew's Best-README-Template](https://github.com/othneildrew/Best-README-Template)
-* [Alex Ronquillo's Discord Bot Tutorial](https://realpython.com/how-to-make-a-discord-bot-python/#what-is-a-bot)
+* [othneildrew: Best-README-Template](https://github.com/othneildrew/Best-README-Template)
+* [Alex Ronquillo: Discord Bot Tutorial](https://realpython.com/how-to-make-a-discord-bot-python/#what-is-a-bot)
 
 
 
