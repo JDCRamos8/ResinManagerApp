@@ -57,7 +57,7 @@ SOFTWARE.
     <a href="https://github.com/JDCRamos8/ResinManagerApp"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="#getting-started">View Demo</a>
+    <a href="#about-the-project">View Demo</a>
     ·
     <a href="https://github.com/JDCRamos8/ResinManagerApp/issues">Report Bug</a>
     ·
