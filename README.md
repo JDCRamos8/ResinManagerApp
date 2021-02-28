@@ -57,7 +57,7 @@ SOFTWARE.
     <a href="https://github.com/JDCRamos8/ResinManagerApp"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/JDCRamos8/ResinManagerApp">View Demo</a>
+    <a href="#about-the-project">View Demo</a>
     ·
     <a href="https://github.com/JDCRamos8/ResinManagerApp/issues">Report Bug</a>
     ·
@@ -92,7 +92,7 @@ SOFTWARE.
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+![Product Name Screen Shot][product-screenshot]
 
 
 ### Built With
