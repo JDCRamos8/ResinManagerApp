@@ -28,10 +28,10 @@ async def set(ctx, arg : int):
     resinAmount = arg
 
     if resinAmount in range (0,161):
-        @tasks.loop(seconds=3.0)      # Increase resinAmount every 8 minutes
+        @tasks.loop(minutes=8.0)      # Increase resinAmount every 8 minutes
         async def count():
             global resinAmount
-            await asyncio.sleep(5)
+            await asyncio.sleep(480)
             resinAmount += 1
 
             if resinAmount == 160:    # Stop resin count and notifies user
