@@ -62,10 +62,12 @@ async def when(ctx, arg : int):
         await ctx.send('You already have ' + str(resinAmount) + ' Resin!')
     elif arg in range (0,161):
         result = arg - resinAmount
-        hr = str(timedelta(minutes=(result) * 8))[:2]
-        min = str(timedelta(minutes=(result) * 8))[3:5]
+        duration = timedelta(minutes=(result) * 8)
+        seconds = duration.total_seconds()
+        hr = seconds // 3600
+        min = (seconds % 3600) // 60
 
-        await ctx.send('You will have %s Resin in %s hours and %s minutes.' % (str(arg), hr, min))
+        await ctx.send('You will have %s Resin in %s hours and %s minutes.' % (str(arg), str(hr)[:-2], str(min)[:-2]))
     else:
         await ctx.send('No Resin available. Use !set to input Resin or !help for commands.')
    
