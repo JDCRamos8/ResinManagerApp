@@ -2,6 +2,7 @@
 import os
 import discord
 import asyncio
+import random
 from discord.ext import tasks, commands
 from dotenv import load_dotenv
 from datetime import timedelta
@@ -93,40 +94,55 @@ async def refill(ctx, arg : int = 1):
     await ctx.send('Refilled %s Resin! Your total Resin is %s.' % (str(refill), str(resinAmount)))
 
 
+# Qoute: Displays a random Beidou quote to the user
+@bot.command()
+async def quote(ctx):
+    line = random.choice(open('quotes.txt').readlines())
+    await ctx.send(line)
+
 # Help commands
 @bot.group(invoke_without_command = True)
 async def help(ctx):
     emb = discord.Embed(title = 'Help', description = 'Use !help <command> for more info on a command.', color = ctx.author.color)
-    emb.add_field(name = 'Resin' , value = 'set, check, when, refill')
+
+    emb.add_field(name = 'Resin', value = 'set, check, when, refill')
+    emb.add_field(name = 'Fun', value = 'quote')
+
     await ctx.send(embed = emb)
 
 
 @help.command()
 async def set(ctx):
     emb = discord.Embed(title = 'Set', description = 'Set current Resin amount', color = ctx.author.color)
-    emb.add_field(name = '**Syntax**' , value = '!set <amount>')
+    emb.add_field(name = '**Syntax**' , value = '-set <amount>')
     await ctx.send(embed = emb)
 
 
 @help.command()
 async def check(ctx):
     emb = discord.Embed(title = 'Check', description = 'Check current Resin amount', color = ctx.author.color)
-    emb.add_field(name = '**Syntax**' , value = '!check')
+    emb.add_field(name = '**Syntax**' , value = '-check')
     await ctx.send(embed = emb)
 
 
 @help.command()
 async def when(ctx):
     emb = discord.Embed(title = 'When', description = 'Show remaining time for specified Resin amount \n Notify user when Resin reaches <amount> and max', color = ctx.author.color)
-    emb.add_field(name = '**Syntax**' , value = '!when <amount>')
+    emb.add_field(name = '**Syntax**' , value = '-when <amount>')
     await ctx.send(embed = emb)
 
 
 @help.command()
 async def refill(ctx):
     emb = discord.Embed(title = 'Refill', description = 'Adds a multiple of 60 to Resin count', color = ctx.author.color)
-    emb.add_field(name = '**Syntax**' , value = '!Refill <amount>')
+    emb.add_field(name = '**Syntax**' , value = '-Refill <amount>')
     await ctx.send(embed = emb)
 
+
+@help.command()
+async def quote(ctx):
+    emb = discord.Embed(title = 'Quote', description = 'Displays a random Beidou quote to the user', color = ctx.author.color)
+    emb.add_field(name = '**Syntax**' , value = '-quote')
+    await ctx.send(embed = emb)
 
 bot.run(TOKEN)
