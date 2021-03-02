@@ -51,7 +51,7 @@ async def set(ctx, arg : int):
        await ctx.send('Enter a valid Resin amount. (0-160)')
 
 
-# Check: Updates resin amount
+# Check: Display user's current Resin amount
 @bot.command()
 async def check(ctx):
     try:
@@ -60,7 +60,7 @@ async def check(ctx):
         await ctx.send('No Resin available. Use !set to input Resin or !help for commands.')
 
 
-# When: Shows remaning time left for resin to refill at specified amount
+# When: Shows remaning time left for Resin to refill at specified amount
 # Calculated by taking Resin arg - current Resin and multiplies it by 8 to find remaining time
 @bot.command()
 async def when(ctx, arg : int):
@@ -82,6 +82,16 @@ async def when(ctx, arg : int):
     else:
         await ctx.send('No Resin available. Use !set to input Resin or !help for commands.')
    
+
+# Refill: Adds a multiple of 60 to resinAmount
+@bot.command()
+async def refill(ctx, arg : int = 1):
+    global resinAmount
+    refill = 60 * arg
+    resinAmount += refill
+
+    await ctx.send('Refilled %s Resin! Your total Resin is %s.' % (str(refill), str(resinAmount)))
+
 
 # Help commands
 @bot.group(invoke_without_command = True)
@@ -107,23 +117,16 @@ async def check(ctx):
 
 @help.command()
 async def when(ctx):
-    emb = discord.Embed(title = 'When', description = 'Show remaining time for Resin | Notifiy user when amount is ready', color = ctx.author.color)
+    emb = discord.Embed(title = 'When', description = 'Show remaining time for specified Resin amount \n Notify user when Resin reaches <amount> and max', color = ctx.author.color)
     emb.add_field(name = '**Syntax**' , value = '!when <amount>')
     await ctx.send(embed = emb)
 
+
 @help.command()
-async def check(ctx):
+async def refill(ctx):
     emb = discord.Embed(title = 'Refill', description = 'Adds a multiple of 60 to Resin count', color = ctx.author.color)
     emb.add_field(name = '**Syntax**' , value = '!Refill <amount>')
     await ctx.send(embed = emb)
 
-# Refill: Adds a multiple of 60 to resinAmount
-@bot.command()
-async def refill(ctx, arg : int):
-    global resinAmount
-    refill = 60 * arg
-    resinAmount += refill
-
-    await ctx.send('Refilled %s Resin! Your total Resin is %s' % (str(refill), str(resinAmount)))
 
 bot.run(TOKEN)
