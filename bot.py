@@ -19,7 +19,9 @@ async def on_ready():
     activity = discord.Activity(name='your Resin', type=discord.ActivityType.watching)     # Bot status
     await bot.change_presence(activity=activity)
 
-resinAmount = 0     # To be used as global variable
+# To be used as global variables
+resinAmount = 0
+reminder = 0
 
 # Set: Sets resin amount and record time to calculate resin refill at specified amount
 @bot.command()
@@ -28,18 +30,22 @@ async def set(ctx, arg : int):
     resinAmount = arg
 
     if resinAmount in range (0,161):
-        @tasks.loop(minutes=8.0)      # Increase resinAmount every 8 minutes
+        @tasks.loop(minutes=8.0)             # Increase resinAmount every 8 minutes
         async def count():
             global resinAmount
             await asyncio.sleep(480)
             resinAmount += 1
 
-            if resinAmount == 160:    # Stop resin count and notifies user
+            if (resinAmount == reminder):    # Notifies user of their when() command
+                channel = bot.get_channel(int(os.getenv('CHANNEL_ID')))
+                await channel.send('**%s Resin available!**' % str(reminder))
+
+            if (resinAmount == 160):         # Max Resin reached, notifies user
                 channel = bot.get_channel(int(os.getenv('CHANNEL_ID')))
                 await channel.send('**Max Resin available!**')
                 count.stop()
 
-        count.start()                 # Begin resin count
+        count.start()                        # Begin resin count
         await ctx.send('Resin set to ' + str(resinAmount) + '!')
     else:
        await ctx.send('Enter a valid Resin amount. (0-160)')
@@ -58,10 +64,15 @@ async def check(ctx):
 # Calculated by taking Resin arg - current Resin and multiplies it by 8 to find remaining time
 @bot.command()
 async def when(ctx, arg : int):
+    global reminder
+    reminder = arg
+
     if arg < resinAmount:
         await ctx.send('You already have ' + str(resinAmount) + ' Resin!')
     elif arg in range (0,161):
         result = arg - resinAmount
+
+        # Time calculations
         duration = timedelta(minutes=(result) * 8)
         seconds = duration.total_seconds()
         hr = seconds // 3600
