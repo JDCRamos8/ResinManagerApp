@@ -87,29 +87,43 @@ async def when(ctx, arg : int):
 @bot.group(invoke_without_command = True)
 async def help(ctx):
     emb = discord.Embed(title = 'Help', description = 'Use !help <command> for more info on a command.', color = ctx.author.color)
-    emb.add_field(name = 'Resin' , value = 'set, check, when')
+    emb.add_field(name = 'Resin' , value = 'set, check, when, refill')
     await ctx.send(embed = emb)
 
 
 @help.command()
 async def set(ctx):
-    emb = discord.Embed(title = 'Set', description = 'Set current resin amount', color = ctx.author.color)
+    emb = discord.Embed(title = 'Set', description = 'Set current Resin amount', color = ctx.author.color)
     emb.add_field(name = '**Syntax**' , value = '!set <amount>')
     await ctx.send(embed = emb)
 
 
 @help.command()
 async def check(ctx):
-    emb = discord.Embed(title = 'Check', description = 'Check current resin amount', color = ctx.author.color)
+    emb = discord.Embed(title = 'Check', description = 'Check current Resin amount', color = ctx.author.color)
     emb.add_field(name = '**Syntax**' , value = '!check')
     await ctx.send(embed = emb)
 
 
 @help.command()
 async def when(ctx):
-    emb = discord.Embed(title = 'When', description = 'View remaining time until specified resin', color = ctx.author.color)
+    emb = discord.Embed(title = 'When', description = 'Show remaining time for Resin | Notifiy user when amount is ready', color = ctx.author.color)
     emb.add_field(name = '**Syntax**' , value = '!when <amount>')
     await ctx.send(embed = emb)
 
+@help.command()
+async def check(ctx):
+    emb = discord.Embed(title = 'Refill', description = 'Adds a multiple of 60 to Resin count', color = ctx.author.color)
+    emb.add_field(name = '**Syntax**' , value = '!Refill <amount>')
+    await ctx.send(embed = emb)
+
+# Refill: Adds a multiple of 60 to resinAmount
+@bot.command()
+async def refill(ctx, arg : int):
+    global resinAmount
+    refill = 60 * arg
+    resinAmount += refill
+
+    await ctx.send('Refilled %s Resin! Your total Resin is %s' % (str(refill), str(resinAmount)))
 
 bot.run(TOKEN)
