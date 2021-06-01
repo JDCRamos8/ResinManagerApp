@@ -3,16 +3,26 @@ import os
 import discord
 import asyncio
 import random
+import pymongo
 from discord.ext import tasks, commands
 from dotenv import load_dotenv
 from datetime import timedelta
+from pymongo import MongoClient
 
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
+CONNECTION = os.getenv('CONNECTION_URL')
+
 
 bot = commands.Bot(command_prefix='-')  # Bot, subclass of Client discord API
 bot.remove_command('help')              # Remove default help command
+
+# Connect to MongoDB Cluster
+cluster = MongoClient(CONNECTION)
+db = cluster['UserData']
+collection = db['UserData']
+
 
 @bot.event
 async def on_ready():
@@ -20,34 +30,53 @@ async def on_ready():
     activity = discord.Activity(name='your Resin', type=discord.ActivityType.watching)     # Bot status
     await bot.change_presence(activity=activity)
 
-# To be used as global variables
-resinAmount = 0
-reminder = 0
 
-# Set: Sets resin amount and record time to calculate resin refill at specified amount
+# Set: Sets resin amount and records time to calculate resin refill at specified amount
 @bot.command()
 async def set(ctx, arg : int):
-    global resinAmount, count
-    resinAmount = arg
+    myquery = { '_id': ctx.author.id }
+    query = {'_id': ctx.author.id}
+    user = collection.find(query)
+    for result in user:
+        resin = result['resin']
+        reminder = result['reminder']
 
-    if resinAmount in range (0,161):
-        @tasks.loop(minutes=8.0)             # Increase resinAmount every 8 minutes
+    if (collection.count_documents(myquery) == 0):  # User does not exist in database, add user
+        post = {'_id': ctx.author.id, 'resin': arg, 'reminder': 0}
+        collection.insert_one(post)
+
+    else:                                           # User exists in database, update resin amount
+        collection.delete_many({"_id": ctx.author.id})
+        post = {'_id': ctx.author.id, 'resin': arg, 'reminder': 0}
+        collection.insert_one(post)
+
+    if arg in range(0, 161):
+        @tasks.loop(seconds=3.0)                    # Increase resinAmount every 8 minutes
         async def count():
-            global resinAmount
-            await asyncio.sleep(480)
-            resinAmount += 1
+            query = {'_id': ctx.author.id}
+            user = collection.find(query)
+            for result in user:
+                resin = result['resin']
+                reminder = result['reminder']
+        
+            await asyncio.sleep(5)
+            resin += 1
 
-            if (resinAmount == reminder):    # Notifies user of their when() command
-                channel = bot.get_channel(int(os.getenv('CHANNEL_ID')))
-                await channel.send('**%s Resin available!**' % str(reminder))
+            filter = { '_id': ctx.author.id }
+            updatedResin = { "$set": { 'resin': resin } }
+            collection.update_one(filter, updatedResin) 
 
-            if (resinAmount == 160):         # Max Resin reached, notifies user
-                channel = bot.get_channel(int(os.getenv('CHANNEL_ID')))
-                await channel.send('**Max Resin available!**')
+            discordUser = await bot.fetch_user(ctx.author.id)
+
+            if (resin == reminder):                 # Notifies user of their when() command
+                await discordUser.send('**%s Resin available!**' % str(reminder))
+
+            if (resin == 160):                      # Max Resin reached, notifies user
+                await discordUser.send('**Max Resin available!**')
                 count.stop()
 
-        count.start()                        # Begin resin count
-        await ctx.send('Resin set to ' + str(resinAmount) + '!')
+        count.start()                               # Begin resin count
+        await ctx.send('Resin set to ' + str(arg) + '!')
     else:
        await ctx.send('Enter a valid Resin amount. (0-160)')
 
@@ -55,43 +84,72 @@ async def set(ctx, arg : int):
 # Check: Display user's current Resin amount
 @bot.command()
 async def check(ctx):
-    try:
-        await ctx.send('You currently have ' + str(resinAmount) + ' Resin!')
-    except:
-        await ctx.send('No Resin available. Use !set to input Resin or !help for commands.')
+    myquery = { '_id': ctx.author.id }
+
+    if (collection.count_documents(myquery) == 0):  # User does not exist in database, give help command
+        await ctx.send('No Resin available. Use -set to input Resin or -help for commands.')
+
+    else:                                           # User exists in database, display current resin
+        query = {'_id': ctx.author.id}
+        user = collection.find({}, {'_id': 0, 'resin': 1, 'reminder': 0})
+
+        for result in user:
+            await ctx.send('You currently have ' + str(result[resin]) + ' Resin!')
 
 
 # When: Shows remaning time left for Resin to refill at specified amount
 # Calculated by taking Resin arg - current Resin and multiplies it by 8 to find remaining time
 @bot.command()
 async def when(ctx, arg : int):
-    global reminder
-    reminder = arg
+    myquery = { '_id': ctx.author.id }
 
-    if arg < resinAmount:
-        await ctx.send('You already have ' + str(resinAmount) + ' Resin!')
-    elif arg in range (0,161):
-        result = arg - resinAmount
+    if (collection.count_documents(myquery) == 0):  # User does not exist in database, give help command
+        await ctx.send('No Resin available. Use -set to input Resin or -help for commands.')
 
-        # Time calculations
-        duration = timedelta(minutes=(result) * 8)
-        seconds = duration.total_seconds()
-        hr = seconds // 3600
-        min = (seconds % 3600) // 60
+    else:                                           # User exists in database, calculate time
+        query = {'_id': ctx.author.id}
+        user = collection.find(query)
+        for result in user:
+            resin = result['resin']
+            reminder = result['reminder']
 
-        await ctx.send('You will have %s Resin in %s hours and %s minutes.' % (str(arg), str(hr)[:-2], str(min)[:-2]))
-    else:
-        await ctx.send('No Resin available. Use !set to input Resin or !help for commands.')
+        filter = { '_id': ctx.author.id }
+        updatedReminder = { "$set": { 'reminder': arg } }
+        collection.update_one(filter, updatedReminder) 
+
+        if arg < resin:
+            await ctx.send('You already have ' + str(resin) + ' Resin!')
+
+        elif arg in range (0,161):
+            result = arg - resin
+
+            # Time calculations
+            duration = timedelta(minutes=(result) * 8)
+            seconds = duration.total_seconds()
+            hr = seconds // 3600
+            min = (seconds % 3600) // 60
+
+            await ctx.send('You will have %s Resin in %s hours and %s minutes.' % (str(arg), str(hr)[:-2], str(min)[:-2]))
    
 
-# Refill: Adds a multiple of 60 to resinAmount
+# Refill: Adds a multiple of 60 to Resin amount
 @bot.command()
 async def refill(ctx, arg : int = 1):
-    global resinAmount
-    refill = 60 * arg
-    resinAmount += refill
+    myquery = { '_id': ctx.author.id }
 
-    await ctx.send('Refilled %s Resin! Your total Resin is %s.' % (str(refill), str(resinAmount)))
+    if (collection.count_documents(myquery) == 0):  # User does not exist in database, give help command
+        await ctx.send('No Resin available. Use -set to input Resin or -help for commands.')
+
+    else:                                           # User exists in database, refill current resin
+        query = {'_id': ctx.author.id}
+        user = collection.find(query)
+        for result in user:
+            resin = result['resin']
+
+        refill = 60 * arg
+        resin += refill
+
+        await ctx.invoke(bot.get_command('set'), arg=resin)
 
 
 # Qoute: Displays a random Beidou quote to the user
@@ -100,10 +158,11 @@ async def quote(ctx):
     line = random.choice(open('quotes.txt').readlines())
     await ctx.send(line)
 
+
 # Help commands
 @bot.group(invoke_without_command = True)
 async def help(ctx):
-    emb = discord.Embed(title = 'Help', description = 'Use !help <command> for more info on a command.', color = ctx.author.color)
+    emb = discord.Embed(title = 'Help', description = 'Use -help <command> for more info on a command.', color = ctx.author.color)
 
     emb.add_field(name = 'Resin', value = 'set, check, when, refill')
     emb.add_field(name = 'Fun', value = 'quote')
